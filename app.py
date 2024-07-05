@@ -1,12 +1,13 @@
 # Import os to set API key
 import os
-# Import OpenAI as main LLM service
-from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
+# Import Hugging Face transformers and other necessary libraries
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from langchain.llms import HuggingFaceLLM
+from langchain.embeddings import HuggingFaceEmbeddings
 # Bring in streamlit for UI/app interface
 import streamlit as st
 
-# Import PDF document loaders...there's other ones as well!
+# Import PDF document loaders
 from langchain.document_loaders import PyPDFLoader
 # Import chroma as the vector store 
 from langchain.vectorstores import Chroma
@@ -18,13 +19,17 @@ from langchain.agents.agent_toolkits import (
     VectorStoreInfo
 )
 
-# Set APIkey for OpenAI Service
-# Can sub this out for other LLM providers
-os.environ['OPENAI_API_KEY'] = 'youropenaiapikeyhere'
+# Set API key for Hugging Face Service
+os.environ['HUGGINGFACEHUB_API_TOKEN'] = 'yourhuggingfaceapikeyhere'
 
-# Create instance of OpenAI LLM
-llm = OpenAI(temperature=0.1, verbose=True)
-embeddings = OpenAIEmbeddings()
+# Load Hugging Face model and tokenizer
+model_name = "gpt2"  # You can change this to any model you prefer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+# Create instance of Hugging Face LLM
+llm = HuggingFaceLLM(model=model, tokenizer=tokenizer, temperature=0.1, verbose=True)
+embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
 # Create and load PDF Loader
 loader = PyPDFLoader('annualreport.pdf')
@@ -64,4 +69,4 @@ if prompt:
         # Find the relevant pages
         search = store.similarity_search_with_score(prompt) 
         # Write out the first 
-        st.write(search[0][0].page_content) 
+        st.write(search[0][0].page_content)
